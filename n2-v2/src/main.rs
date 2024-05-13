@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::num::ParseIntError;
 
@@ -16,29 +17,22 @@ fn main() {
 
     let result = read_lines(args.file.as_str());
     let mut sum: i32 = 0;
-    // let mut counter = 0;
+    let mut counter = 0;
 
     for line in result {
-        if digits.len() < 1 {
-            println!("Nothing found in {line}");
-            return;
-        }
+        let first = "";
+        let last = "";
 
-        let first = digits[0];
-        let last = digits[digits.len() - 1];
-
-        let number = match convert_digits(first, last) {
+        let number = match convert_digits(line.as_str()) {
             Ok(n) => n,
             Err(err) => panic!("Number incorrect!\n {}", err),
         };
 
-        println!("{line}");
-        println!("{}", digits.join(", "));
-        println!("f: {first}, l: {last}, n: {number}");
+        println!("{line} = {number}");
 
         // counter += 1;
-        // if counter > 10 {
-        // return;
+        // if counter > 30 {
+        //     return;
         // }
 
         sum += number
@@ -57,7 +51,7 @@ fn read_lines(filename: &str) -> Vec<String> {
     return result;
 }
 
-fn convert_digits(first: &str, last: &str) -> Result<i32, ParseIntError> {
+fn convert_digits(line: &str) -> Result<i32, ParseIntError> {
     let numbers_map = HashMap::from([
         ("one", "1"),
         ("two", "2"),
@@ -68,10 +62,47 @@ fn convert_digits(first: &str, last: &str) -> Result<i32, ParseIntError> {
         ("seven", "7"),
         ("eight", "8"),
         ("nine", "9"),
+        ("1", "1"),
+        ("2", "2"),
+        ("3", "3"),
+        ("4", "4"),
+        ("5", "5"),
+        ("6", "6"),
+        ("7", "7"),
+        ("8", "8"),
+        ("9", "9"),
     ]);
+    let mut min = 100000;
+    let mut max = 0;
+    let mut first: &str = "";
+    let mut last: &str = "";
 
-    let first_d: &str = numbers_map.get(first).or(Some(&first)).unwrap();
-    let last_d: &str = numbers_map.get(last).or(Some(&last)).unwrap();
+    for (key, value) in &numbers_map {
+        // let pos = line.find(key);
+        let positions: Vec<usize> = line.match_indices(key).map(|(i, _)| i).collect();
+        let mut max_pos_tmp = positions.iter().max();
+        let mut min_pos_tmp = positions.iter().min();
 
-    return format!("{first_d}{last_d}").parse::<i32>();
+        if min_pos_tmp == None && max_pos_tmp == None {
+            continue;
+        } else if min_pos_tmp == None {
+            min_pos_tmp = max_pos_tmp;
+        } else if max_pos_tmp == None {
+            max_pos_tmp = min_pos_tmp;
+        }
+
+        let max_pos = max_pos_tmp.unwrap() + 1;
+        let min_pos = min_pos_tmp.unwrap() + 1;
+
+        if min > min_pos {
+            min = min_pos;
+            first = value;
+        }
+        if max < max_pos {
+            max = max_pos;
+            last = value;
+        }
+    }
+
+    return format!("{first}{last}").parse::<i32>();
 }
